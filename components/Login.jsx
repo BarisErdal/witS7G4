@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Form, FormGroup, Label, Input, Button, NavItem } from 'reactstrap';
 import { useHistory } from 'react-router-dom';
 
-import axios from 'axios';
 
 const initialForm = {
   email: '',
@@ -31,19 +30,7 @@ export default function Login() {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    axios
-      .get('https://6540a96145bedb25bfc247b4.mockapi.io/api/login')
-      .then((res) => {
-        const user = res.data.find(
-          (item) => item.password == form.password && item.email == form.email
-        );
-        if (user) {
-          setForm(initialForm);
-          history.push('/main');
-        } else {
-          history.push('/error');
-        }
-      });
+   
   };
 
   return (
