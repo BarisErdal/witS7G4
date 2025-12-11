@@ -1,79 +1,99 @@
-import React, { useEffect, useState } from 'react';
-import { Form, FormGroup, Label, Input, Button, NavItem } from 'reactstrap';
-import { useHistory } from 'react-router-dom';
-
-
-const initialForm = {
-  email: '',
-  password: '',
-  terms: false,
-};
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const [form, setForm] = useState(initialForm);
+  const nav = useNavigate();
 
-  const history = useHistory();
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    accept: false,
+  });
 
-  const handleChange = (event) => {
-    let { name, value, type, checked } = event.target;
-    setForm({ ...form, [name]: value });
+  const [errors, setErrors] = useState({});
 
-    if (type === 'checkbox') {
-      if (checked) {
-        setForm({ ...form, [name]: true });
-      } else {
-        setForm({ ...form, [name]: false });
-      }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const strongPass = /^(?=.*\d)(?=.*[A-Z]).{6,}$/;
+
+  const validate = (name, value) => {
+    let err = "";
+
+    if (name === "email" && !emailRegex.test(value)) {
+      err = "Geçerli bir email giriniz.";
+    }
+
+    if (name === "password" && !strongPass.test(value)) {
+      err = "Parola en az 6 karakter olmalı, 1 büyük harf ve 1 sayı içermeli.";
+    }
+
+    if (name === "accept" && !value) {
+      err = "Devam etmek için şartları kabul etmelisiniz.";
+    }
+
+    setErrors(prev => ({ ...prev, [name]: err }));
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const val = type === "checkbox" ? checked : value;
+    setForm({ ...form, [name]: val });
+    validate(name, val);
+  };
+
+  const isValid =
+    emailRegex.test(form.email) &&
+    strongPass.test(form.password) &&
+    form.accept;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (isValid) {
+      nav("/success");
     }
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-   
-  };
-
   return (
-    <Form onSubmit={handleSubmit}>
-      <FormGroup>
-        <Label for="exampleEmail">Email</Label>
-        <Input
-          id="exampleEmail"
+    <div style={{ display: "flex", justifyContent: "center" }}>
+      <form onSubmit={handleSubmit}>
+        <h1>Login</h1>
+
+        <input
+          className="input-field"
           name="email"
-          placeholder="Enter your email"
-          type="email"
-          onChange={handleChange}
+          placeholder="Email"
           value={form.email}
+          onChange={handleChange}
+          data-cy="email"
         />
-      </FormGroup>
-      <FormGroup>
-        <Label for="examplePassword">Password</Label>
-        <Input
-          id="examplePassword"
+        {errors.email && <p data-cy="error-email">{errors.email}</p>}
+
+        <input
+          className="input-field"
           name="password"
-          placeholder="Enter your password "
+          placeholder="Password"
+          value={form.password}
           type="password"
           onChange={handleChange}
-          value={form.password}
+          data-cy="password"
         />
-      </FormGroup>
-      {/* reactstrap checkbox ekleyelim*/}
-      <FormGroup check>
-        <Input
-          type="checkbox"
-          name="terms"
-          id="terms"
-          onChange={handleChange}
-        />{' '}
-        <Label htmlFor="terms" check>
-          I agree to terms of service and privacy policy
-        </Label>
-      </FormGroup>
-      <FormGroup className="text-center p-4">
-        <Button color="primary" disabled={!form.terms}>
-          Sign In
-        </Button>
-      </FormGroup>
-    </Form>
+        {errors.password && <p data-cy="error-pass">{errors.password}</p>}
+
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            name="accept"
+            checked={form.accept}
+            onChange={handleChange}
+            data-cy="accept"
+          />
+          Şartları kabul ediyorum
+        </label>
+        {errors.accept && <p data-cy="error-accept">{errors.accept}</p>}
+
+        <button disabled={!isValid} data-cy="submit">
+          Login
+        </button>
+      </form>
+    </div>
   );
 }
